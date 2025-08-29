@@ -65,14 +65,21 @@ class _GameScreenState extends State<GameScreen> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: Colors.black,
-        title: const Text("Innings Over!",
-            style: TextStyle(color: Colors.yellow, fontFamily: "monospace")),
-        content: Text("Target for opponent: $target",
-            style: const TextStyle(color: Colors.white)),
+        title: const Text(
+          "Innings Over!",
+          style: TextStyle(color: Colors.yellow, fontFamily: "monospace"),
+        ),
+        content: Text(
+          "Target for opponent: $target",
+          style: const TextStyle(color: Colors.white),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("OK", style: TextStyle(color: Colors.cyanAccent)),
+            child: const Text(
+              "OK",
+              style: TextStyle(color: Colors.cyanAccent),
+            ),
           )
         ],
       ),
@@ -96,10 +103,12 @@ class _GameScreenState extends State<GameScreen> {
       barrierDismissible: false,
       builder: (_) => AlertDialog(
         backgroundColor: Colors.black,
-        title: const Text("Game Over",
-            style: TextStyle(color: Colors.redAccent, fontFamily: "monospace")),
+        title: const Text(
+          "Game Over",
+          style: TextStyle(color: Colors.redAccent, fontFamily: "monospace"),
+        ),
         content: Text(
-          "Final Score: $runs/${wickets}\n\n$result",
+          "Final Score: $runs/$wickets\n\n$result",
           style: const TextStyle(color: Colors.white),
         ),
         actions: [
@@ -108,8 +117,10 @@ class _GameScreenState extends State<GameScreen> {
               Navigator.pop(context);
               Navigator.pop(context);
             },
-            child: const Text("Back to Menu",
-                style: TextStyle(color: Colors.greenAccent)),
+            child: const Text(
+              "Back to Menu",
+              style: TextStyle(color: Colors.greenAccent),
+            ),
           )
         ],
       ),
@@ -125,9 +136,10 @@ class _GameScreenState extends State<GameScreen> {
         title: const Text(
           'Retro Hand Cricket',
           style: TextStyle(
-              fontFamily: "monospace",
-              fontWeight: FontWeight.bold,
-              color: Colors.cyanAccent),
+            fontFamily: "monospace",
+            fontWeight: FontWeight.bold,
+            color: Colors.cyanAccent,
+          ),
         ),
         centerTitle: true,
       ),
@@ -139,46 +151,103 @@ class _GameScreenState extends State<GameScreen> {
             Text(
               playerBatting ? "You are Batting" : "You are Bowling",
               style: const TextStyle(
-                  fontSize: 20,
-                  color: Colors.yellowAccent,
-                  fontFamily: "monospace"),
+                fontSize: 20,
+                color: Colors.yellowAccent,
+                fontFamily: "monospace",
+              ),
             ),
             Text(
               "Runs: $runs | Wickets: $wickets",
               style: const TextStyle(
-                  fontSize: 18,
-                  color: Colors.greenAccent,
-                  fontFamily: "monospace"),
+                fontSize: 18,
+                color: Colors.greenAccent,
+                fontFamily: "monospace",
+              ),
             ),
             Text(
               "You: $playerChoice   Opponent: $opponentChoice",
               style: const TextStyle(fontSize: 16, color: Colors.white),
             ),
+
+            // Retro Buttons (6)
             Wrap(
-              spacing: 10,
+              spacing: 12,
+              runSpacing: 12,
               children: List.generate(6, (i) {
-                return ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purpleAccent,
-                    foregroundColor: Colors.black,
-                    shadowColor: Colors.cyanAccent,
-                    elevation: 8,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                  ),
-                  onPressed: () => playTurn(i + 1),
-                  child: Text(
-                    "${i + 1}",
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: "monospace",
-                    ),
-                  ),
+                return SpriteButton(
+                  index: i + 1,
+                  onTap: () => playTurn(i + 1),
                 );
               }),
-            )
+            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A button using your cropped retro images
+class SpriteButton extends StatefulWidget {
+  final int index; // 1–6
+  final VoidCallback onTap;
+
+  const SpriteButton({
+    super.key,
+    required this.index,
+    required this.onTap,
+  });
+
+  @override
+  State<SpriteButton> createState() => _SpriteButtonState();
+}
+
+class _SpriteButtonState extends State<SpriteButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        transform: Matrix4.translationValues(0, _pressed ? 4 : 0, 0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: _pressed
+              ? [
+                  const BoxShadow(
+                    color: Colors.black87,
+                    offset: Offset(2, 2),
+                    blurRadius: 0,
+                  ),
+                ]
+              : [
+                  const BoxShadow(
+                    color: Colors.tealAccent,
+                    offset: Offset(0, 0),
+                    blurRadius: 8,
+                  ),
+                  const BoxShadow(
+                    color: Colors.black,
+                    offset: Offset(6, 6),
+                    blurRadius: 0,
+                  ),
+                ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.asset(
+            "assets/btn${widget.index}.png", // your retro cropped buttons
+            width: 80,
+            height: 80,
+            filterQuality: FilterQuality.none, // keep retro crispness
+          ),
         ),
       ),
     );
