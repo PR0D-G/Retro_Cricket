@@ -1,6 +1,12 @@
+# Ignore build/config files
+CMakeLists.txt linguist-detectable=false
+*.cmake linguist-detectable=false
+
+# Ignore other languages if needed
 *.cpp linguist-detectable=false
 *.h linguist-detectable=false
-*.cmake-detectable=false
-*.js linguist-detectable=false
-*.html linguist-detectable=false
-vendor/* linguist-vendored
+*.swift linguist-detectable=false
+*.java linguist-detectable=false
+
+# Force Dart detection
+*.dart linguist-detectable=true
