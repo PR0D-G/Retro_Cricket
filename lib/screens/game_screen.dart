@@ -118,128 +118,149 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  bool get isDesktopOrWeb {
+    if (kIsWeb) return true;
+    try {
+      return Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // 🔽 Control how low buttons are placed
+    final double buttonBottomPadding = isDesktopOrWeb ? 55 : 10;
+
     return Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(
-          backgroundColor: Colors.green.shade900,
-          elevation: 6,
-          centerTitle: true,
-          title: Text(
-            playerBatting ? "🏏 Batting End" : "☄️ Bowling End",
-            style: const TextStyle(
-              fontFamily: "monospace",
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.yellowAccent,
-              shadows: [
-                Shadow(
-                  blurRadius: 4,
-                  color: Colors.black,
-                  offset: Offset(2, 2),
-                )
-              ],
-            ),
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.green.shade900,
+        elevation: 6,
+        centerTitle: true,
+        title: Text(
+          playerBatting ? "🏏 Batting End" : "☄️ Bowling End",
+          style: const TextStyle(
+            fontFamily: "monospace",
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.yellowAccent,
+            shadows: [
+              Shadow(
+                blurRadius: 4,
+                color: Colors.black,
+                offset: Offset(2, 2),
+              )
+            ],
           ),
         ),
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            LayoutBuilder(
-              builder: (context, constraints) {
-                // detect if running on web or desktop
-                final isDesktopOrWeb = kIsWeb ||
-                    Platform.isWindows ||
-                    Platform.isLinux ||
-                    Platform.isMacOS;
+      ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // ✅ Background
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Container(
+                color: Colors.black,
+                child: Image.asset(
+                  playerBatting
+                      ? "assets/batsman_end.png"
+                      : "assets/bowler_end.png",
+                  key: ValueKey(playerBatting),
+                  fit: isDesktopOrWeb ? BoxFit.fitHeight : BoxFit.cover,
+                  alignment: Alignment.center,
+                  filterQuality: FilterQuality.none,
+                  width: double.infinity,
+                  height: double.infinity,
+                ),
+              );
+            },
+          ),
 
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 600),
-                  child: Image.asset(
-                    playerBatting
-                        ? "assets/batsman_end.png"
-                        : "assets/bowler_end.png",
-                    key: ValueKey(playerBatting),
-                    fit: isDesktopOrWeb
-                        ? BoxFit.contain // ✅ keep original ratio (desktop/web)
-                        : BoxFit.cover, // ✅ fill screen (mobile/tablet)
-                    alignment: Alignment.center,
-                    filterQuality: FilterQuality.none,
-                    width: double.infinity,
-                    height: double.infinity,
+          // ✅ Foreground UI
+          Padding(
+            padding: EdgeInsets.only(
+              left: 18,
+              right: 18,
+              top: 18,
+              bottom: buttonBottomPadding, // 🔽 pushes buttons further down
+            ),
+            child: Column(
+              children: [
+                Text(
+                  playerBatting ? "You are Batting" : "You are Bowling",
+                  style: const TextStyle(
+                    fontSize: 20,
+                    color: Colors.yellowAccent,
+                    fontFamily: "monospace",
                   ),
-                );
-              },
-            ),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 600),
-              child: Image.asset(
-                playerBatting
-                    ? "assets/batsman_end.png"
-                    : "assets/bowler_end.png",
-                key: ValueKey(playerBatting),
-                fit: BoxFit.cover, // ✅ fullscreen, crops excess
-                alignment: Alignment.center,
-                filterQuality: FilterQuality.none,
-                width: double.infinity,
-                height: double.infinity,
-              ),
-            ),
+                ),
+                Text(
+                  "Runs: $runs | Wickets: $wickets",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Colors.greenAccent,
+                    fontFamily: "monospace",
+                  ),
+                ),
+                Text(
+                  "You: $playerChoice   Opponent: $opponentChoice",
+                  style: const TextStyle(fontSize: 16, color: Colors.white),
+                ),
 
-            // Foreground UI
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Text(
-                    playerBatting ? "You are Batting" : "You are Bowling",
-                    style: const TextStyle(
-                      fontSize: 20,
-                      color: Colors.yellowAccent,
-                      fontFamily: "monospace",
-                    ),
-                  ),
-                  Text(
-                    "Runs: $runs | Wickets: $wickets",
-                    style: const TextStyle(
-                      fontSize: 18,
-                      color: Colors.greenAccent,
-                      fontFamily: "monospace",
-                    ),
-                  ),
-                  Text(
-                    "You: $playerChoice   Opponent: $opponentChoice",
-                    style: const TextStyle(fontSize: 16, color: Colors.white),
-                  ),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    alignment: WrapAlignment.center,
+                const Spacer(), // 👇 pushes buttons to bottom
+
+                // ✅ Responsive Button Layout
+                if (isDesktopOrWeb)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(6, (i) {
-                      return SpriteButton(
-                        index: i + 1,
-                        onTap: () => playTurn(i + 1),
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: SpriteButton(
+                          index: i + 1,
+                          onTap: () => playTurn(i + 1),
+                          buttonSize: 80, // fixed size desktop
+                        ),
+                      );
+                    }),
+                  )
+                else
+                  GridView.count(
+                    shrinkWrap: true,
+                    crossAxisCount: 3, // 3×2 grid
+                    crossAxisSpacing: 2,
+                    mainAxisSpacing: 0,
+                    children: List.generate(6, (i) {
+                      return Center(
+                        child: SpriteButton(
+                          index: i + 1,
+                          onTap: () => playTurn(i + 1),
+                          buttonSize: 90, // fixed size mobile
+                        ),
                       );
                     }),
                   ),
-                ],
-              ),
+              ],
             ),
-          ],
-        ));
+          ),
+        ],
+      ),
+    );
   }
 }
 
 class SpriteButton extends StatefulWidget {
   final int index;
   final VoidCallback onTap;
+  final double buttonSize; // 👈 Button size stays fixed
 
   const SpriteButton({
     super.key,
     required this.index,
     required this.onTap,
+    required this.buttonSize,
   });
 
   @override
@@ -288,8 +309,8 @@ class _SpriteButtonState extends State<SpriteButton> {
           borderRadius: BorderRadius.circular(8),
           child: Image.asset(
             "assets/btn${widget.index}.png",
-            width: 80,
-            height: 80,
+            width: widget.buttonSize,
+            height: widget.buttonSize,
             filterQuality: FilterQuality.none,
           ),
         ),
