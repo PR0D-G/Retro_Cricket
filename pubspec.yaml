@@ -18,7 +18,13 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  flutter_launcher_icons: ^0.14.4
   flutter_lints: ^5.0.0
+
+flutter_icons:
+  image_path: "assets/logo.png"
+  android: true
+  ios: true
 
 flutter:
   uses-material-design: true
@@ -35,4 +41,3 @@ flutter:
     - assets/batsman.png
     - assets/bowler.png
     - assets/bg.png
-

@@ -58,32 +58,10 @@ class _GameScreenState extends State<GameScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.green.shade900,
-        elevation: 6,
-        centerTitle: true,
-        title: Text(
-          playerBatting ? "🏏 Batting End" : "☄️ Bowling End",
-          style: const TextStyle(
-            fontFamily: "monospace",
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.yellowAccent,
-            shadows: [
-              Shadow(
-                blurRadius: 4,
-                color: Colors.black,
-                offset: Offset(2, 2),
-              )
-            ],
-          ),
-        ),
-      ),
       body: Stack(
         fit: StackFit.expand,
         children: [
           GameAlignments.background(playerBatting),
-          GameAlignments.playerSprite(playerBatting),
           Padding(
             padding: EdgeInsets.only(
               left: 18,

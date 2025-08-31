@@ -27,28 +27,6 @@ class GameAlignments {
 
   // ✅ Player sprite overlay
 
-  static Widget playerSprite(bool playerBatting) {
-    return Align(
-      alignment: Alignment.center,
-      child: Transform(
-        alignment: Alignment.center,
-        transform:
-            playerBatting ? Matrix4.identity() : Matrix4.rotationY(math.pi),
-        child: Image.asset(
-          playerBatting ? "assets/batsman.png" : "assets/bowler.png",
-          width: playerBatting ? 550 : 400,
-          height: playerBatting ? 550 : 400,
-          alignment: playerBatting
-              ? (isDesktopOrWeb
-                  ? const Alignment(1.25, 0)
-                  : const Alignment(2.5, 0))
-              : const Alignment(-2, 0),
-          filterQuality: FilterQuality.none,
-        ),
-      ),
-    );
-  }
-
   // ✅ Top status texts
   static Widget topTexts({
     required bool playerBatting,
