@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:retro_cricket/widget/align.dart';
 
 class GameScreen extends StatefulWidget {
   final bool vsAI;
@@ -34,7 +33,7 @@ class _GameScreenState extends State<GameScreen> {
             playerBatting = false;
             runs = 0;
             wickets = 0;
-            _showInningsChange();
+            GameAlignments.showInningsChange(context, target);
           }
         } else {
           runs += playerChoice;
@@ -42,95 +41,20 @@ class _GameScreenState extends State<GameScreen> {
       } else {
         if (playerChoice == opponentChoice) {
           wickets++;
-          _showResult();
+          GameAlignments.showResult(context, runs, wickets, target);
         } else {
           runs += opponentChoice;
           if (runs >= target) {
-            _showResult();
+            GameAlignments.showResult(context, runs, wickets, target);
           }
         }
       }
     });
   }
 
-  void _showInningsChange() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: Colors.black,
-        title: const Text(
-          "Innings Over!",
-          style: TextStyle(color: Colors.yellow, fontFamily: "monospace"),
-        ),
-        content: Text(
-          "Target for opponent: $target",
-          style: const TextStyle(color: Colors.white),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              "OK",
-              style: TextStyle(color: Colors.cyanAccent),
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  void _showResult() {
-    String result;
-    if (runs >= target) {
-      result = "Opponent Wins!";
-    } else if (runs == target - 1) {
-      result = "Match Tied!";
-    } else {
-      result = "You Win!";
-    }
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        backgroundColor: Colors.black,
-        title: const Text(
-          "Game Over",
-          style: TextStyle(color: Colors.redAccent, fontFamily: "monospace"),
-        ),
-        content: Text(
-          "Final Score: $runs/$wickets\n\n$result",
-          style: const TextStyle(color: Colors.white),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-            child: const Text(
-              "Back to Menu",
-              style: TextStyle(color: Colors.greenAccent),
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  bool get isDesktopOrWeb {
-    if (kIsWeb) return true;
-    try {
-      return Platform.isWindows || Platform.isLinux || Platform.isMacOS;
-    } catch (_) {
-      return false;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    // 🔽 Control how low buttons are placed
-    final double buttonBottomPadding = isDesktopOrWeb ? 55 : 10;
+    final double buttonBottomPadding = GameAlignments.isDesktopOrWeb ? 55 : 10;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -158,162 +82,32 @@ class _GameScreenState extends State<GameScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // ✅ Background
-          LayoutBuilder(
-            builder: (context, constraints) {
-              return Container(
-                color: Colors.black,
-                child: Image.asset(
-                  playerBatting
-                      ? "assets/batsman_end.png"
-                      : "assets/bowler_end.png",
-                  key: ValueKey(playerBatting),
-                  fit: isDesktopOrWeb ? BoxFit.fitHeight : BoxFit.cover,
-                  alignment: Alignment.center,
-                  filterQuality: FilterQuality.none,
-                  width: double.infinity,
-                  height: double.infinity,
-                ),
-              );
-            },
-          ),
-
-          // ✅ Foreground UI
+          GameAlignments.background(playerBatting),
+          GameAlignments.playerSprite(playerBatting),
           Padding(
             padding: EdgeInsets.only(
               left: 18,
               right: 18,
               top: 18,
-              bottom: buttonBottomPadding, // 🔽 pushes buttons further down
+              bottom: buttonBottomPadding,
             ),
             child: Column(
               children: [
-                Text(
-                  playerBatting ? "You are Batting" : "You are Bowling",
-                  style: const TextStyle(
-                    fontSize: 20,
-                    color: Colors.yellowAccent,
-                    fontFamily: "monospace",
-                  ),
+                GameAlignments.topTexts(
+                  playerBatting: playerBatting,
+                  runs: runs,
+                  wickets: wickets,
+                  playerChoice: playerChoice,
+                  opponentChoice: opponentChoice,
                 ),
-                Text(
-                  "Runs: $runs | Wickets: $wickets",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Colors.greenAccent,
-                    fontFamily: "monospace",
-                  ),
+                const Spacer(),
+                GameAlignments.actionButtons(
+                  playTurn: playTurn,
                 ),
-                Text(
-                  "You: $playerChoice   Opponent: $opponentChoice",
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
-                ),
-
-                const Spacer(), // 👇 pushes buttons to bottom
-
-                // ✅ Responsive Button Layout
-                if (isDesktopOrWeb)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(6, (i) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: SpriteButton(
-                          index: i + 1,
-                          onTap: () => playTurn(i + 1),
-                          buttonSize: 80, // fixed size desktop
-                        ),
-                      );
-                    }),
-                  )
-                else
-                  GridView.count(
-                    shrinkWrap: true,
-                    crossAxisCount: 3, // 3×2 grid
-                    crossAxisSpacing: 2,
-                    mainAxisSpacing: 0,
-                    children: List.generate(6, (i) {
-                      return Center(
-                        child: SpriteButton(
-                          index: i + 1,
-                          onTap: () => playTurn(i + 1),
-                          buttonSize: 90, // fixed size mobile
-                        ),
-                      );
-                    }),
-                  ),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class SpriteButton extends StatefulWidget {
-  final int index;
-  final VoidCallback onTap;
-  final double buttonSize; // 👈 Button size stays fixed
-
-  const SpriteButton({
-    super.key,
-    required this.index,
-    required this.onTap,
-    required this.buttonSize,
-  });
-
-  @override
-  State<SpriteButton> createState() => _SpriteButtonState();
-}
-
-class _SpriteButtonState extends State<SpriteButton> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) {
-        setState(() => _pressed = false);
-        widget.onTap();
-      },
-      onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 100),
-        transform: Matrix4.translationValues(0, _pressed ? 4 : 0, 0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: _pressed
-              ? [
-                  const BoxShadow(
-                    color: Colors.black87,
-                    offset: Offset(2, 2),
-                    blurRadius: 0,
-                  )
-                ]
-              : [
-                  const BoxShadow(
-                    color: Colors.tealAccent,
-                    offset: Offset(0, 0),
-                    blurRadius: 6,
-                  ),
-                  const BoxShadow(
-                    color: Colors.black,
-                    offset: Offset(6, 6),
-                    blurRadius: 0,
-                  ),
-                ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.asset(
-            "assets/btn${widget.index}.png",
-            width: widget.buttonSize,
-            height: widget.buttonSize,
-            filterQuality: FilterQuality.none,
-          ),
-        ),
       ),
     );
   }
