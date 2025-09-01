@@ -1,16 +1,29 @@
-# retro_cricket
+retro cricket yet to add
+moving audience like gif in old games
+pop up for winner
+no of wickets
+retro audio
+fit screen background
+toss for bating or bowling (odd or even)
+button alignment
+moving batsman and bowler(little animation)
+better home screen
+loading screen
+scoreboard to show scores
+like 1 in 20 decibels checking (rarely for boundary audience shout while that show decibels)
+super over
 
-A new Flutter project.
 
-## Getting Started
+later updates
+optional login auth
+online multiplayer
+create rooms
+high score and steak manager
+if winning shot is six some dhoni reference
+264 Rohit
+century sachin
+6 sixers in a row yuvaraj singh celebration
+some easter eggs like 1 im 100 multiplayer chance(raining for 5 sec break or dog ran into stadium1 in 200: Pixel UFO sighting above stadium )
+creating avatar
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
