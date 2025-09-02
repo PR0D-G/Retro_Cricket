@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
-import 'dart:math' as math;
+import 'dart:ui';
 
 class GameAlignments {
-  // ✅ Check platform
   static bool get isDesktopOrWeb {
     if (kIsWeb) return true;
     try {
@@ -14,7 +13,6 @@ class GameAlignments {
     }
   }
 
-  // ✅ Background (with proper BoxFit logic)
   static Widget background(bool playerBatting) {
     return Image.asset(
       playerBatting ? "assets/batsman_end.png" : "assets/bowler_end.png",
@@ -25,9 +23,6 @@ class GameAlignments {
     );
   }
 
-  // ✅ Player sprite overlay
-
-  // ✅ Top status texts
   static Widget topTexts({
     required bool playerBatting,
     required int runs,
@@ -45,15 +40,72 @@ class GameAlignments {
             fontFamily: "monospace",
           ),
         ),
-        Text(
-          "You: $playerChoice Opponent: $opponentChoice",
-          style: const TextStyle(fontSize: 16, color: Colors.white),
+        const SizedBox(height: 12),
+
+        // 🔹 Glassmorphic squares
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _glassBox("You", playerChoice, Colors.cyanAccent),
+            const SizedBox(width: 20),
+            _glassBox("Opponent", opponentChoice, Colors.pinkAccent),
+          ],
         ),
       ],
     );
   }
 
-  // ✅ Action buttons (desktop vs mobile layout preserved)
+  static Widget _glassBox(String title, int choice, Color borderColor) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(15),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          width: 120,
+          height: 90,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(
+              color: borderColor.withValues(alpha: 0.7),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.5),
+                blurRadius: 8,
+                offset: const Offset(2, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: borderColor, // ✅ same as box color
+                  fontWeight: FontWeight.bold, // ✅ bold text
+                  fontFamily: "monospace",
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                "$choice",
+                style: TextStyle(
+                  fontSize: 26,
+                  color: borderColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   static Widget actionButtons({
     required Function(int) playTurn,
   }) {
@@ -162,7 +214,6 @@ class GameAlignments {
   }
 }
 
-// ✅ SpriteButton moved here
 class SpriteButton extends StatefulWidget {
   final int index;
   final VoidCallback onTap;
@@ -179,53 +230,85 @@ class SpriteButton extends StatefulWidget {
   State<SpriteButton> createState() => _SpriteButtonState();
 }
 
-class _SpriteButtonState extends State<SpriteButton> {
-  bool _pressed = false;
+class _SpriteButtonState extends State<SpriteButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _offsetAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 80),
+      reverseDuration: const Duration(milliseconds: 120),
+    );
+
+    _offsetAnimation = Tween<double>(begin: 0, end: 4).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+  }
+
+  void _handleTap() {
+    if (mounted) {
+      _controller.forward(from: 0).then((_) {
+        if (mounted) _controller.reverse();
+      });
+    }
+    widget.onTap();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) {
-        setState(() => _pressed = false);
-        widget.onTap();
-      },
-      onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 100),
-        transform: Matrix4.translationValues(0, _pressed ? 4 : 0, 0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: _pressed
-              ? [
-                  const BoxShadow(
-                    color: Colors.black87,
-                    offset: Offset(2, 2),
-                    blurRadius: 0,
-                  )
-                ]
-              : [
-                  const BoxShadow(
-                    color: Colors.tealAccent,
-                    offset: Offset(0, 0),
-                    blurRadius: 6,
-                  ),
-                  const BoxShadow(
-                    color: Colors.black,
-                    offset: Offset(6, 6),
-                    blurRadius: 0,
-                  ),
-                ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.asset(
-            "assets/btn${widget.index}.png",
-            width: widget.buttonSize,
-            height: widget.buttonSize,
-            filterQuality: FilterQuality.none,
-          ),
-        ),
+      onTap: _handleTap,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(0, _offsetAnimation.value),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: _controller.isAnimating
+                    ? [
+                        const BoxShadow(
+                          color: Colors.black87,
+                          offset: Offset(2, 2),
+                          blurRadius: 0,
+                        )
+                      ]
+                    : [
+                        const BoxShadow(
+                          color: Colors.tealAccent,
+                          offset: Offset(0, 0),
+                          blurRadius: 6,
+                        ),
+                        const BoxShadow(
+                          color: Colors.black,
+                          offset: Offset(6, 6),
+                          blurRadius: 0,
+                        ),
+                      ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  "assets/btn${widget.index}.png",
+                  width: widget.buttonSize,
+                  height: widget.buttonSize,
+                  filterQuality: FilterQuality.none,
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
