@@ -61,28 +61,41 @@ class _GameScreenState extends State<GameScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
+          // ✅ Background
           GameAlignments.background(playerBatting),
-          Padding(
-            padding: EdgeInsets.only(
-              left: 18,
-              right: 18,
-              top: 18,
-              bottom: buttonBottomPadding,
-            ),
-            child: Column(
-              children: [
-                GameAlignments.topTexts(
+
+          // ✅ Scorecard
+          if (GameAlignments.isDesktopOrWeb)
+            // Floating overlay (desktop/web)
+            GameAlignments.scoreCard(
+              playerBatting: playerBatting,
+              runs: runs,
+              wickets: wickets,
+              playerChoice: playerChoice,
+              opponentChoice: opponentChoice,
+            )
+          else
+            // Mobile → pinned at top
+            Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 25),
+                child: GameAlignments.scoreCard(
                   playerBatting: playerBatting,
                   runs: runs,
                   wickets: wickets,
                   playerChoice: playerChoice,
                   opponentChoice: opponentChoice,
                 ),
-                const Spacer(),
-                GameAlignments.actionButtons(
-                  playTurn: playTurn,
-                ),
-              ],
+              ),
+            ),
+
+          // ✅ Buttons at bottom
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: buttonBottomPadding),
+              child: GameAlignments.actionButtons(playTurn: playTurn),
             ),
           ),
         ],

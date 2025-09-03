@@ -1,8 +1,14 @@
+import 'package:flutter/foundation.dart'; // for kIsWeb
 import 'package:flutter/material.dart';
 import 'game_screen.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
+
+  bool get isDesktopOrWeb =>
+      kIsWeb ||
+      [TargetPlatform.macOS, TargetPlatform.linux, TargetPlatform.windows]
+          .contains(defaultTargetPlatform);
 
   @override
   Widget build(BuildContext context) {
@@ -11,11 +17,13 @@ class MenuScreen extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 🔹 Retro Neon Background (static PNG)
+          // 🔹 Retro Neon Background (adaptive for devices)
           Positioned.fill(
             child: Image.asset(
-              "assets/bg.png", // <-- use your PNG here
-              fit: BoxFit.fill,
+              "assets/menu_screen_bg.png",
+              fit: isDesktopOrWeb ? BoxFit.fitHeight : BoxFit.cover,
+              alignment: Alignment.center,
+              filterQuality: FilterQuality.none,
             ),
           ),
 
@@ -26,7 +34,7 @@ class MenuScreen extends StatelessWidget {
                 colors: [
                   Colors.black.withValues(alpha: 0.7),
                   Colors.transparent,
-                  Colors.black..withValues(alpha: 0.8),
+                  Colors.black.withValues(alpha: 0.8),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -36,72 +44,49 @@ class MenuScreen extends StatelessWidget {
 
           // 🔹 Main content
           Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Title
-                Text(
-                  'RETRO HAND CRICKET',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 32,
-                    color: Colors.yellowAccent,
-                    fontFamily: 'monospace',
-                    fontWeight: FontWeight.bold,
-                    shadows: [
-                      Shadow(
-                        color: Colors.greenAccent.shade400,
-                        blurRadius: 12,
-                        offset: const Offset(2, 2),
-                      ),
-                    ],
+            child: Padding(
+              padding: EdgeInsets.only(
+                top: isDesktopOrWeb ? 400 : 520, // ⬅️ different offsets
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  _menuButton(
+                    label: "🤖 vs AI",
+                    color: Colors.greenAccent,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const GameScreen(vsAI: true),
+                        ),
+                      );
+                    },
                   ),
-                ),
-
-                const SizedBox(height: 60),
-
-                // Player vs AI button
-                _menuButton(
-                  label: "🤖 vs AI",
-                  color: Colors.greenAccent,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const GameScreen(vsAI: true),
-                      ),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 20),
-
-                // Player vs Player button
-                _menuButton(
-                  label: "👥 Online",
-                  color: Colors.cyanAccent,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const GameScreen(vsAI: false),
-                      ),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 40),
-
-                // Footer text
-                Text(
-                  "© Retro Cricket 2025",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade400,
-                    fontFamily: "monospace",
+                  const SizedBox(height: 20),
+                  _menuButton(
+                    label: "👥 Online",
+                    color: Colors.cyanAccent,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const GameScreen(vsAI: false),
+                        ),
+                      );
+                    },
                   ),
-                ),
-              ],
+                  const SizedBox(height: 40),
+                  Text(
+                    "© Retro Cricket 2025",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade400,
+                      fontFamily: "monospace",
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

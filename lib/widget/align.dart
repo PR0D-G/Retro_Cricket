@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 import 'dart:ui';
 
+// ✅ Main Alignment + UI Helper Class
 class GameAlignments {
   static bool get isDesktopOrWeb {
     if (kIsWeb) return true;
@@ -23,6 +24,57 @@ class GameAlignments {
     );
   }
 
+  static Widget scoreCard({
+    required bool playerBatting,
+    required int runs,
+    required int wickets,
+    required int playerChoice,
+    required int opponentChoice,
+  }) {
+    final card = Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white24, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.7),
+            blurRadius: 10,
+            offset: const Offset(3, 3),
+          ),
+        ],
+      ),
+      child: topTexts(
+        playerBatting: playerBatting,
+        runs: runs,
+        wickets: wickets,
+        playerChoice: playerChoice,
+        opponentChoice: opponentChoice,
+      ),
+    );
+
+    if (isDesktopOrWeb) {
+      return Positioned(
+        top: 20,
+        right: 20,
+        child: card,
+      );
+    } else {
+      return Align(
+        alignment: Alignment.topCenter,
+        child: Container(
+          margin: const EdgeInsets.only(top: 16),
+          constraints: const BoxConstraints(
+            maxWidth: 300,
+            maxHeight: 160,
+          ),
+          child: card,
+        ),
+      );
+    }
+  }
+
   static Widget topTexts({
     required bool playerBatting,
     required int runs,
@@ -41,8 +93,6 @@ class GameAlignments {
           ),
         ),
         const SizedBox(height: 12),
-
-        // 🔹 Glassmorphic squares
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -85,8 +135,8 @@ class GameAlignments {
                 title,
                 style: TextStyle(
                   fontSize: 16,
-                  color: borderColor, // ✅ same as box color
-                  fontWeight: FontWeight.bold, // ✅ bold text
+                  color: borderColor,
+                  fontWeight: FontWeight.bold,
                   fontFamily: "monospace",
                 ),
               ),
@@ -146,25 +196,64 @@ class GameAlignments {
   static void showInningsChange(BuildContext context, int target) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: Colors.black,
-        title: const Text(
-          "Innings Over!",
-          style: TextStyle(color: Colors.yellow, fontFamily: "monospace"),
-        ),
-        content: Text(
-          "Target for opponent: $target",
-          style: const TextStyle(color: Colors.white),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              "OK",
-              style: TextStyle(color: Colors.cyanAccent),
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.cyanAccent, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.cyanAccent.withValues(alpha: 0.7),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "Innings Over!",
+                    style: TextStyle(
+                      color: Colors.yellow,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: "monospace",
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    "Target for opponent: $target",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.cyanAccent,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("OK"),
+                  ),
+                ],
+              ),
             ),
-          )
-        ],
+          ),
+        ),
       ),
     );
   }
@@ -184,36 +273,74 @@ class GameAlignments {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        backgroundColor: Colors.black,
-        title: const Text(
-          "Game Over",
-          style: TextStyle(
-            color: Colors.redAccent,
-            fontFamily: "monospace",
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.redAccent, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.redAccent.withValues(alpha: 0.7),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "Game Over",
+                    style: TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: "monospace",
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    "Final Score: $runs/$wickets\n\n$result",
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.greenAccent,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+                    child: const Text("Back to Menu"),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
-        content: Text(
-          "Final Score: $runs/$wickets\n\n$result",
-          style: const TextStyle(color: Colors.white),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-            child: const Text(
-              "Back to Menu",
-              style: TextStyle(color: Colors.greenAccent),
-            ),
-          )
-        ],
       ),
     );
   }
 }
 
+// ✅ SpriteButton stays the same
 class SpriteButton extends StatefulWidget {
   final int index;
   final VoidCallback onTap;
