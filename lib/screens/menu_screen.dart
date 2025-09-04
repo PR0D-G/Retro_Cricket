@@ -21,7 +21,7 @@ class MenuScreen extends StatelessWidget {
           Positioned.fill(
             child: Image.asset(
               "assets/menu_screen_bg.png",
-              fit: isDesktopOrWeb ? BoxFit.fitHeight : BoxFit.cover,
+              fit: isDesktopOrWeb ? BoxFit.fitHeight : BoxFit.fill,
               alignment: Alignment.center,
               filterQuality: FilterQuality.none,
             ),

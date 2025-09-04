@@ -18,14 +18,19 @@ class _GameScreenState extends State<GameScreen> {
   int playerChoice = 0;
   int opponentChoice = 0;
   int target = -1;
-  bool playerBatting = true;
+  bool playerBatting = true; // true = you are batting
+  bool ballInProgress = false; // ⏳ Prevents spam + shows timeout clock
 
-  void playTurn(int choice) {
+  Future<void> playTurn(int choice) async {
+    if (ballInProgress) return; // 🚫 Prevent spam
+    setState(() => ballInProgress = true);
+
     setState(() {
       playerChoice = choice;
       opponentChoice = random.nextInt(6) + 1;
 
       if (playerBatting) {
+        // ✅ First Innings - Player batting
         if (playerChoice == opponentChoice) {
           wickets++;
           if (wickets >= 1) {
@@ -39,6 +44,7 @@ class _GameScreenState extends State<GameScreen> {
           runs += playerChoice;
         }
       } else {
+        // ✅ Second Innings - Player bowling
         if (playerChoice == opponentChoice) {
           wickets++;
           GameAlignments.showResult(context, runs, wickets, target);
@@ -50,6 +56,10 @@ class _GameScreenState extends State<GameScreen> {
         }
       }
     });
+
+    // ⏳ Wait 1 sec before enabling next ball
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() => ballInProgress = false);
   }
 
   @override
@@ -66,16 +76,15 @@ class _GameScreenState extends State<GameScreen> {
 
           // ✅ Scorecard
           if (GameAlignments.isDesktopOrWeb)
-            // Floating overlay (desktop/web)
             GameAlignments.scoreCard(
               playerBatting: playerBatting,
               runs: runs,
               wickets: wickets,
               playerChoice: playerChoice,
               opponentChoice: opponentChoice,
+              target: target,
             )
           else
-            // Mobile → pinned at top
             Align(
               alignment: Alignment.topCenter,
               child: Padding(
@@ -86,7 +95,18 @@ class _GameScreenState extends State<GameScreen> {
                   wickets: wickets,
                   playerChoice: playerChoice,
                   opponentChoice: opponentChoice,
+                  target: target,
                 ),
+              ),
+            ),
+
+          // ✅ Timeout SandClock in center while waiting
+          if (ballInProgress)
+            const Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: EdgeInsets.only(top: 80, right: 20),
+                child: SandClock(visible: true),
               ),
             ),
 
@@ -95,10 +115,52 @@ class _GameScreenState extends State<GameScreen> {
             alignment: Alignment.bottomCenter,
             child: Padding(
               padding: EdgeInsets.only(bottom: buttonBottomPadding),
-              child: GameAlignments.actionButtons(playTurn: playTurn),
+              child: GameAlignments.actionButtons(
+                playTurn: playTurn,
+                disabled: ballInProgress, // 🔹 Disable while waiting
+              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// 🔹 Retro Timeout Clock Widget
+class _SandClock extends StatefulWidget {
+  @override
+  State<_SandClock> createState() => _SandClockState();
+}
+
+class _SandClockState extends State<_SandClock>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    )..repeat(reverse: true); // flip every 0.5 sec
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RotationTransition(
+      turns: Tween<double>(begin: 0, end: 1).animate(_controller),
+      child: Image.asset(
+        "assets/timeout.png",
+        width: 40,
+        height: 40,
+        filterQuality: FilterQuality.none, // retro pixel look
       ),
     );
   }

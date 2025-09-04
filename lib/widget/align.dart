@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 import 'dart:ui';
 
-// ✅ Main Alignment + UI Helper Class
 class GameAlignments {
   static bool get isDesktopOrWeb {
     if (kIsWeb) return true;
@@ -18,7 +17,7 @@ class GameAlignments {
     return Image.asset(
       playerBatting ? "assets/batsman_end.png" : "assets/bowler_end.png",
       key: ValueKey(playerBatting),
-      fit: isDesktopOrWeb ? BoxFit.fitHeight : BoxFit.cover,
+      fit: isDesktopOrWeb ? BoxFit.fitHeight : BoxFit.fill,
       alignment: Alignment.center,
       filterQuality: FilterQuality.none,
     );
@@ -30,6 +29,7 @@ class GameAlignments {
     required int wickets,
     required int playerChoice,
     required int opponentChoice,
+    required int target,
   }) {
     final card = Container(
       padding: const EdgeInsets.all(12),
@@ -51,6 +51,7 @@ class GameAlignments {
         wickets: wickets,
         playerChoice: playerChoice,
         opponentChoice: opponentChoice,
+        target: target,
       ),
     );
 
@@ -62,12 +63,12 @@ class GameAlignments {
       );
     } else {
       return Align(
-        alignment: Alignment.topCenter,
+        alignment: isDesktopOrWeb ? Alignment.topLeft : Alignment.topCenter,
         child: Container(
-          margin: const EdgeInsets.only(top: 16),
+          margin: const EdgeInsets.only(top: 16, left: 16, right: 16),
           constraints: const BoxConstraints(
             maxWidth: 300,
-            maxHeight: 160,
+            maxHeight: 180,
           ),
           child: card,
         ),
@@ -81,28 +82,52 @@ class GameAlignments {
     required int wickets,
     required int playerChoice,
     required int opponentChoice,
+    required int target,
   }) {
-    return Column(
-      children: [
+    List<Widget> children = [];
+
+    // ✅ First Line: Runs + Wickets
+    children.add(
+      Text(
+        "Runs: $runs | Wickets: $wickets",
+        style: const TextStyle(
+          fontSize: 18,
+          color: Colors.greenAccent,
+          fontFamily: "monospace",
+        ),
+      ),
+    );
+
+    // ✅ Show Target Info only in 2nd innings
+    if (target != -1) {
+      children.add(const SizedBox(height: 6));
+      children.add(
         Text(
-          "Runs: $runs | Wickets: $wickets",
+          "Target: $target",
           style: const TextStyle(
-            fontSize: 18,
-            color: Colors.greenAccent,
+            fontSize: 16,
+            color: Colors.yellow,
             fontFamily: "monospace",
           ),
         ),
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _glassBox("You", playerChoice, Colors.cyanAccent),
-            const SizedBox(width: 20),
-            _glassBox("Opponent", opponentChoice, Colors.pinkAccent),
-          ],
-        ),
-      ],
+      );
+    }
+
+    children.add(const SizedBox(height: 12));
+
+    // ✅ Choices row
+    children.add(
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _glassBox("You", playerChoice, Colors.cyanAccent),
+          const SizedBox(width: 20),
+          _glassBox("Opponent", opponentChoice, Colors.pinkAccent),
+        ],
+      ),
     );
+
+    return Column(children: children);
   }
 
   static Widget _glassBox(String title, int choice, Color borderColor) {
@@ -158,6 +183,7 @@ class GameAlignments {
 
   static Widget actionButtons({
     required Function(int) playTurn,
+    bool disabled = false,
   }) {
     if (isDesktopOrWeb) {
       return Row(
@@ -165,10 +191,17 @@ class GameAlignments {
         children: List.generate(6, (i) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: SpriteButton(
-              index: i + 1,
-              onTap: () => playTurn(i + 1),
-              buttonSize: 80,
+            child: Opacity(
+              opacity: disabled ? 0.5 : 1, // fade when disabled
+              child: IgnorePointer(
+                // block taps + animations
+                ignoring: disabled,
+                child: SpriteButton(
+                  index: i + 1,
+                  onTap: () => playTurn(i + 1),
+                  buttonSize: 80,
+                ),
+              ),
             ),
           );
         }),
@@ -181,10 +214,16 @@ class GameAlignments {
         mainAxisSpacing: 0,
         children: List.generate(6, (i) {
           return Center(
-            child: SpriteButton(
-              index: i + 1,
-              onTap: () => playTurn(i + 1),
-              buttonSize: 90,
+            child: Opacity(
+              opacity: disabled ? 0.5 : 1,
+              child: IgnorePointer(
+                ignoring: disabled,
+                child: SpriteButton(
+                  index: i + 1,
+                  onTap: () => playTurn(i + 1),
+                  buttonSize: 90,
+                ),
+              ),
             ),
           );
         }),
@@ -340,7 +379,49 @@ class GameAlignments {
   }
 }
 
-// ✅ SpriteButton stays the same
+class SandClock extends StatefulWidget {
+  final bool visible;
+  const SandClock({super.key, required this.visible});
+
+  @override
+  State<SandClock> createState() => _SandClockState();
+}
+
+class _SandClockState extends State<SandClock>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    )..repeat(reverse: true); // flip every 0.5s
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.visible) return const SizedBox.shrink();
+
+    return RotationTransition(
+      turns: Tween<double>(begin: 0, end: 1).animate(_controller),
+      child: Image.asset(
+        "assets/timeout.png", // ✅ use your retro timeout image
+        width: 100,
+        height: 100,
+        filterQuality: FilterQuality.none, // keep pixel look
+      ),
+    );
+  }
+}
+
 class SpriteButton extends StatefulWidget {
   final int index;
   final VoidCallback onTap;

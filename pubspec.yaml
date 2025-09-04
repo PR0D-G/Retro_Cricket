@@ -38,6 +38,5 @@ flutter:
     - assets/btn6.png
     - assets/batsman_end.png
     - assets/bowler_end.png
-    - assets/batsman.png
-    - assets/bowler.png
     - assets/menu_screen_bg.png
+    - assets/timeout.png
