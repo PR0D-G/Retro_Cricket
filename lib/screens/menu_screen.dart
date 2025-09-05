@@ -12,6 +12,8 @@ class MenuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+// screen dimensions
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -27,7 +29,7 @@ class MenuScreen extends StatelessWidget {
             ),
           ),
 
-          // 🔹 Overlay with slight gradient tint for readability
+          // 🔹 Overlay with gradient tint
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -42,16 +44,15 @@ class MenuScreen extends StatelessWidget {
             ),
           ),
 
-          // 🔹 Main content
+          // 🔹 Main content (responsive alignment)
           Center(
-            child: Padding(
-              padding: EdgeInsets.only(
-                top: isDesktopOrWeb ? 400 : 520, // ⬅️ different offsets
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  _menuButton(
+            child: Column(
+              children: [
+                const Spacer(flex: 7), // pushes content down
+
+                FractionallySizedBox(
+                  widthFactor: isDesktopOrWeb ? 0.25 : 0.6,
+                  child: _menuButton(
                     label: "🤖 vs AI",
                     color: Colors.greenAccent,
                     onTap: () {
@@ -63,8 +64,11 @@ class MenuScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  const SizedBox(height: 20),
-                  _menuButton(
+                ),
+                const SizedBox(height: 20),
+                FractionallySizedBox(
+                  widthFactor: isDesktopOrWeb ? 0.25 : 0.6,
+                  child: _menuButton(
                     label: "👥 Online",
                     color: Colors.cyanAccent,
                     onTap: () {
@@ -76,17 +80,20 @@ class MenuScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  const SizedBox(height: 40),
-                  Text(
-                    "© Retro Cricket 2025",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade400,
-                      fontFamily: "monospace",
-                    ),
+                ),
+
+                const Spacer(flex: 3), // extra push so buttons stay lower
+
+                Text(
+                  "© Retro Cricket 2025",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade400,
+                    fontFamily: "monospace",
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
           ),
         ],
@@ -94,14 +101,12 @@ class MenuScreen extends StatelessWidget {
     );
   }
 
-  // 🔹 Custom neon-styled button
   Widget _menuButton({
     required String label,
     required Color color,
     required VoidCallback onTap,
   }) {
     return SizedBox(
-      width: 220,
       height: 55,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
@@ -115,13 +120,17 @@ class MenuScreen extends StatelessWidget {
           elevation: 10,
         ),
         onPressed: onTap,
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 18,
-            fontFamily: "monospace",
-            fontWeight: FontWeight.bold,
-            color: color,
+        child: FittedBox(
+          // ensures text scales nicely
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 18,
+              fontFamily: "monospace",
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ),
       ),
