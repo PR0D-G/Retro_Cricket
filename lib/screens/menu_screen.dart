@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart'; // for kIsWeb
 import 'package:flutter/material.dart';
-import 'game_screen.dart';
+import 'offline_game_screen.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
@@ -72,12 +72,8 @@ class MenuScreen extends StatelessWidget {
                     label: "👥 Online",
                     color: Colors.cyanAccent,
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const GameScreen(vsAI: false),
-                        ),
-                      );
+                      showRetroSnackBar(
+                          context, "Online mode will be added soon!");
                     },
                   ),
                 ),
@@ -99,6 +95,41 @@ class MenuScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void showRetroSnackBar(BuildContext context, String message) {
+    final snackBar = SnackBar(
+      content: Container(
+        alignment: Alignment.center, // ✅ center content
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.yellowAccent,
+          border: Border.all(color: Colors.black, width: 3), // black outline
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black,
+              offset: Offset(3, 3),
+            ),
+          ],
+        ),
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 14,
+            fontFamily: "monospace",
+            color: Colors.black,
+          ),
+        ),
+      ),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 1),
+      margin: const EdgeInsets.only(bottom: 30, left: 30, right: 30),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   Widget _menuButton({

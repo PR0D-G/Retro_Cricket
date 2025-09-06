@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 import 'dart:ui';
 
+import '../screens/offline_game_screen.dart';
+
 class GameAlignments {
   static bool get isDesktopOrWeb {
     if (kIsWeb) return true;
@@ -68,7 +70,7 @@ class GameAlignments {
           margin: const EdgeInsets.only(top: 16, left: 16, right: 16),
           constraints: const BoxConstraints(
             maxWidth: 300,
-            maxHeight: 180,
+            maxHeight: 200,
           ),
           child: card,
         ),
@@ -86,7 +88,6 @@ class GameAlignments {
   }) {
     List<Widget> children = [];
 
-    // ✅ First Line: Runs + Wickets
     children.add(
       Text(
         "Runs: $runs | Wickets: $wickets",
@@ -98,7 +99,6 @@ class GameAlignments {
       ),
     );
 
-    // ✅ Show Target Info only in 2nd innings
     if (target != -1) {
       children.add(const SizedBox(height: 6));
       children.add(
@@ -231,73 +231,96 @@ class GameAlignments {
     }
   }
 
-  // ✅ Innings change dialog
   static void showInningsChange(BuildContext context, int target) {
     showDialog(
       context: context,
       builder: (_) => Dialog(
         backgroundColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.cyanAccent, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.cyanAccent.withValues(alpha: 0.7),
-                    blurRadius: 20,
-                    spreadRadius: 2,
-                  ),
-                ],
+        insetPadding: const EdgeInsets.all(16),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: const Color(0xFF00BFA5), // teal retro bg
+            border: Border.all(color: Colors.black, width: 4),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black,
+                offset: Offset(4, 4), // blocky shadow
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: const Text(
+                  "INNINGS CHANGE",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                    fontFamily: "monospace", // use pixel font if available
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Target for opponent: $target",
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black,
+                  fontFamily: "monospace",
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    "Innings Over!",
-                    style: TextStyle(
-                      color: Colors.yellow,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: "monospace",
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    "Target for opponent: $target",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.cyanAccent,
-                      foregroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text("OK"),
-                  ),
+                  _retroButton("OK", () => Navigator.pop(context)),
+                  const SizedBox(width: 12),
                 ],
-              ),
-            ),
+              )
+            ],
           ),
         ),
       ),
     );
   }
 
-  // ✅ Result dialog
+  static Widget _retroButton(String text, VoidCallback onPressed) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+        decoration: BoxDecoration(
+          color: Colors.yellow,
+          border: Border.all(color: Colors.black, width: 3),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black,
+              offset: Offset(3, 3), // block shadow
+            ),
+          ],
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            fontFamily: "monospace",
+            color: Colors.black,
+          ),
+        ),
+      ),
+    );
+  }
+
+// ✅ Retro Game Over Dialog
   static void showResult(
       BuildContext context, int runs, int wickets, int target) {
     String result;
@@ -314,64 +337,74 @@ class GameAlignments {
       barrierDismissible: false,
       builder: (_) => Dialog(
         backgroundColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.redAccent, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.redAccent.withValues(alpha: 0.7),
-                    blurRadius: 20,
-                    spreadRadius: 2,
-                  ),
-                ],
+        insetPadding: const EdgeInsets.all(16),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFF3838),
+            border: Border.all(color: Colors.black, width: 4),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black,
+                offset: Offset(4, 4), // blocky shadow
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 🔹 Retro Header
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: const Text(
+                  "GAME OVER",
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
+                    fontFamily: "monospace", // pixel font if you have
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // 🔹 Final Score
+              Text(
+                "Final Score: $runs/$wickets\n\n$result",
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black,
+                  fontFamily: "monospace",
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // 🔹 Buttons Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    "Game Over",
-                    style: TextStyle(
-                      color: Colors.redAccent,
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: "monospace",
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    "Final Score: $runs/$wickets\n\n$result",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.greenAccent,
-                      foregroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.pop(context);
-                    },
-                    child: const Text("Back to Menu"),
-                  ),
+                  _retroButton("RETRY", () {
+                    Navigator.pop(context);
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const GameScreen()),
+                    );
+                  }),
+                  const SizedBox(width: 12),
+                  _retroButton("MENU", () {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  }),
                 ],
-              ),
-            ),
+              )
+            ],
           ),
         ),
       ),
