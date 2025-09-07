@@ -504,7 +504,6 @@ class _SpriteButtonState extends State<SpriteButton>
     _controller.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
