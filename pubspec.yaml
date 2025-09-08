@@ -40,3 +40,5 @@ flutter:
     - assets/bowler_end.png
     - assets/menu_screen_bg.png
     - assets/timeout.png
+    - assets/batting_icon.png
+    - assets/bowling_icon.png

@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 import 'dart:ui';
-
-import '../screens/offline_game_screen.dart';
+import 'dart:math';
 
 class GameAlignments {
   static bool get isDesktopOrWeb {
@@ -13,6 +12,70 @@ class GameAlignments {
     } catch (_) {
       return false;
     }
+  }
+
+  static Widget buildGameUI({
+    required BuildContext context,
+    required bool playerBatting,
+    required int runs,
+    required int wickets,
+    required int playerChoice,
+    required int opponentChoice,
+    required int target,
+    required String? lastBallResult,
+    required bool ballInProgress,
+    required Function(int) playTurn,
+  }) {
+    final double buttonBottomPadding = isDesktopOrWeb ? 55 : 10;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        background(playerBatting),
+        if (isDesktopOrWeb)
+          scoreCard(
+            playerBatting: playerBatting,
+            runs: runs,
+            wickets: wickets,
+            playerChoice: playerChoice,
+            opponentChoice: opponentChoice,
+            target: target,
+          )
+        else
+          Align(
+            alignment: Alignment.topCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 25),
+              child: scoreCard(
+                playerBatting: playerBatting,
+                runs: runs,
+                wickets: wickets,
+                playerChoice: playerChoice,
+                opponentChoice: opponentChoice,
+                target: target,
+              ),
+            ),
+          ),
+        if (lastBallResult != null)
+          Center(child: RunVfxPopup(result: lastBallResult)),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Padding(
+            padding: EdgeInsets.only(bottom: buttonBottomPadding),
+            child: Opacity(
+              opacity: ballInProgress ? 0.4 : 1.0,
+              child: IgnorePointer(
+                ignoring: ballInProgress,
+                child: actionButtons(
+                  playTurn: playTurn,
+                  disabled: ballInProgress,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   static Widget background(bool playerBatting) {
@@ -322,14 +385,35 @@ class GameAlignments {
 
 // ✅ Retro Game Over Dialog
   static void showResult(
-      BuildContext context, int runs, int wickets, int target) {
+    BuildContext context,
+    int runs,
+    int wickets,
+    int target, {
+    required VoidCallback onRetry,
+    required bool playerBatting,
+  }) {
     String result;
+    Color bgColor;
+
     if (runs >= target) {
-      result = "Opponent Wins!";
+      if (playerBatting) {
+        result = "You Win!";
+        bgColor = const Color(0xFFFFD700); // gold
+      } else {
+        result = "Opponent Wins!";
+        bgColor = const Color(0xFFFF3838); // red
+      }
     } else if (runs == target - 1) {
       result = "Match Tied!";
+      bgColor = Colors.cyanAccent;
     } else {
-      result = "You Win!";
+      if (playerBatting) {
+        result = "Opponent Wins!";
+        bgColor = const Color(0xFFFF3838);
+      } else {
+        result = "You Win!";
+        bgColor = const Color(0xFFFFD700);
+      }
     }
 
     showDialog(
@@ -341,19 +425,18 @@ class GameAlignments {
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: const Color(0xFFFF3838),
+            color: bgColor,
             border: Border.all(color: Colors.black, width: 4),
             boxShadow: const [
               BoxShadow(
                 color: Colors.black,
-                offset: Offset(4, 4), // blocky shadow
+                offset: Offset(4, 4),
               ),
             ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 🔹 Retro Header
               Container(
                 padding:
                     const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
@@ -366,14 +449,11 @@ class GameAlignments {
                   style: TextStyle(
                     fontSize: 18,
                     color: Colors.white,
-                    fontFamily: "monospace", // pixel font if you have
+                    fontFamily: "monospace",
                   ),
                 ),
               ),
-
               const SizedBox(height: 16),
-
-              // 🔹 Final Score
               Text(
                 "Final Score: $runs/$wickets\n\n$result",
                 textAlign: TextAlign.center,
@@ -383,19 +463,13 @@ class GameAlignments {
                   fontFamily: "monospace",
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              // 🔹 Buttons Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _retroButton("RETRY", () {
                     Navigator.pop(context);
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => const GameScreen()),
-                    );
+                    onRetry(); // resets current GameScreen state, keeps widget settings
                   }),
                   const SizedBox(width: 12),
                   _retroButton("MENU", () {
@@ -471,6 +545,119 @@ class SpriteButton extends StatefulWidget {
   State<SpriteButton> createState() => _SpriteButtonState();
 }
 
+class RunVfxPopup extends StatefulWidget {
+  final String result;
+  const RunVfxPopup({super.key, required this.result});
+
+  @override
+  State<RunVfxPopup> createState() => _RunVfxPopupState();
+}
+
+class _RunVfxPopupState extends State<RunVfxPopup>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnim;
+  late Animation<double> _fadeAnim;
+  late Animation<Offset> _floatAnim;
+  late Animation<Color?> _colorAnim;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..forward();
+
+    _scaleAnim = Tween<double>(begin: 0.5, end: 1.5).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+    );
+
+    _fadeAnim = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+
+    _floatAnim = Tween<Offset>(begin: Offset.zero, end: const Offset(0, -50))
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+
+    _colorAnim = ColorTween(begin: Colors.yellow, end: Colors.orange)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed && mounted) {
+        // hide popup automatically after animation
+        setState(() {
+          // Optional: you can call a callback here to hide `lastBallResult`
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: _floatAnim.value,
+          child: Transform.scale(
+            scale: _scaleAnim.value,
+            child: Opacity(
+              opacity: _fadeAnim.value,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  for (int i = 0; i < 8; i++)
+                    Positioned(
+                      left: (Random().nextDouble() - 0.5) * 60,
+                      top: (Random().nextDouble() - 0.5) * 60,
+                      child: Container(
+                        width: 4,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.primaries[i % Colors.primaries.length],
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  // ✨ Floating glowing text
+                  Text(
+                    widget.result,
+                    style: TextStyle(
+                      fontSize: 80,
+                      fontWeight: FontWeight.bold,
+                      color: _colorAnim.value,
+                      shadows: [
+                        Shadow(
+                          blurRadius: 10,
+                          color: Colors.white,
+                          offset: const Offset(0, 0),
+                        ),
+                        Shadow(
+                          blurRadius: 20,
+                          color: Colors.orange,
+                          offset: const Offset(0, 0),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _SpriteButtonState extends State<SpriteButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
@@ -504,6 +691,7 @@ class _SpriteButtonState extends State<SpriteButton>
     _controller.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
