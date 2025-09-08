@@ -306,8 +306,18 @@ class MenuScreen extends StatelessWidget {
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
-                    foregroundColor: Colors.cyanAccent,
-                    side: const BorderSide(color: Colors.cyanAccent, width: 2),
+                    foregroundColor:
+                        Colors.greenAccent.shade100, // pale green glow color
+                    side: BorderSide(
+                        color: Colors.greenAccent.shade100, width: 2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                          12), // slightly rounded rectangle
+                    ),
+                    shadowColor: Colors.greenAccent.shade200,
+                    elevation: 8,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 14, horizontal: 24), // rectangular shape
                   ),
                   onPressed: (selectedWickets != null && selectedOvers != null)
                       ? () => Navigator.pop(context, {
@@ -317,9 +327,12 @@ class MenuScreen extends StatelessWidget {
                       : null,
                   child: const Text(
                     "Start Match",
-                    style: TextStyle(fontFamily: "monospace"),
+                    style: TextStyle(
+                      fontFamily: "monospace",
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
+                )
               ],
             ),
           ),
