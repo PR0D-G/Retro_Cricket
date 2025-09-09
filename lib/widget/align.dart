@@ -628,21 +628,28 @@ class _RunVfxPopupState extends State<RunVfxPopup>
                       ),
                     ),
                   // ✨ Floating glowing text
+                  // ✨ Floating glowing text
                   Text(
                     widget.result,
                     style: TextStyle(
                       fontSize: 80,
                       fontWeight: FontWeight.bold,
-                      color: _colorAnim.value,
+                      color: widget.result.toUpperCase() == "OUT"
+                          ? Colors.redAccent
+                          : _colorAnim.value,
                       shadows: [
                         Shadow(
                           blurRadius: 10,
-                          color: Colors.white,
+                          color: widget.result.toUpperCase() == "OUT"
+                              ? Colors.red
+                              : Colors.white,
                           offset: const Offset(0, 0),
                         ),
                         Shadow(
                           blurRadius: 20,
-                          color: Colors.orange,
+                          color: widget.result.toUpperCase() == "OUT"
+                              ? Colors.redAccent
+                              : Colors.orange,
                           offset: const Offset(0, 0),
                         ),
                       ],

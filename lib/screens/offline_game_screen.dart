@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../widget/align.dart';
 
 class GameScreen extends StatefulWidget {
@@ -22,6 +23,8 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
   final Random random = Random();
+  final AudioPlayer _audioPlayer = AudioPlayer(); // 🎵 sound player
+
   late final bool initialPlayerBatting;
 
   int runs = 0;
@@ -79,9 +82,11 @@ class _GameScreenState extends State<GameScreen> {
           if (playerChoice == opponentChoice) {
             result = "OUT";
             wickets++;
+            _audioPlayer.play(AssetSource("sounds/out.mp3")); // 🔊 OUT
           } else {
             runs += playerChoice;
             result = "$playerChoice";
+            _audioPlayer.play(AssetSource("sounds/bat_hit.mp3")); // 🔊 Bat hit
           }
         } else {
           if (playerChoice == opponentChoice) {
@@ -110,12 +115,14 @@ class _GameScreenState extends State<GameScreen> {
           if (playerChoice == opponentChoice) {
             result = "OUT";
             wickets++;
+            _audioPlayer.play(AssetSource("sounds/out.mp3")); // 🔊 OUT
             if (wickets >= widget.wickets && runs < target) {
               triggerGameOver = true;
             }
           } else {
             runs += playerChoice;
             result = "$playerChoice";
+            _audioPlayer.play(AssetSource("sounds/bat_hit.mp3")); // 🔊 Bat hit
             if (target != -1 && runs >= target) {
               triggerGameOver = true;
             }
@@ -165,6 +172,12 @@ class _GameScreenState extends State<GameScreen> {
         onRetry: resetGame, // ✅ pass resetGame for retry button
       );
     }
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose(); // clean up sounds
+    super.dispose();
   }
 
   @override

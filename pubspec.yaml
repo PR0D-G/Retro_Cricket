@@ -13,6 +13,7 @@ dependencies:
 
   cupertino_icons: ^1.0.8
   flame: ^1.20.0
+  audioplayers: ^6.0.0
 
 dev_dependencies:
   flutter_test:
@@ -42,3 +43,6 @@ flutter:
     - assets/timeout.png
     - assets/batting_icon.png
     - assets/bowling_icon.png
+    - assets/sounds/bat_hit.mp3
+    - assets/sounds/out.mp3
+
