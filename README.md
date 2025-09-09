@@ -5,15 +5,15 @@ Phase 1 – Core Gameplay (Easy & Most Important)
 [✔] batsman & bowler
 [✔] Scoreboard to show scores (must-have for gameplay clarity)
 [✔] Target and Defend
-[ ] No. of wickets (basic gameplay mechanic)
-[ ] Pop-up for winner background image for win and lose  (game loop closure)
+[✔] No. of wickets (basic gameplay mechanic)
+[✔]Pop-up for winner background image for win and lose  (game loop closure)
 [ ] Toss for batting or bowling (odd/even choice) (game start logic)
 [ ] Retro audio (basic effects like bat hit, crowd noise, game over sound)
 
 Phase 2 – Immersion & Retro Feel (Medium Difficulty)
 
 [✔] Loading screen (retro-style “loading…” adds polish)
-[ ] Better home screen (menus, retro design, maybe pixel art)
+[✔]Better home screen (menus, retro design, maybe pixel art)
 [ ] Moving audience (gif/looped sprite animation like old games)
 [ ] Moving batsman & bowler (simple looping animation)
 [ ] 1 in 20 chance: Audience shout + decibel meter animation for  (rare excitement effect)
