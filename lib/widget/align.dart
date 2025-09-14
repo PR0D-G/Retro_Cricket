@@ -126,24 +126,24 @@ class GameAlignments {
 
         // now overlay pause button
         Positioned(
-          top: 20,
-          right: 20,
+          top: 16,
+          right: 16,
           child: GestureDetector(
             onTap: () => showPauseMenu(context),
             child: Container(
-              padding: EdgeInsets.all(Platform.isAndroid ? 8 : 10),
+              padding: EdgeInsets.all(Platform.isAndroid ? 6 : 8),
               decoration: BoxDecoration(
                 color: Colors.yellow,
-                border: Border.all(color: Colors.black, width: 3),
-                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.black, width: 2.5),
+                borderRadius: BorderRadius.circular(6),
                 boxShadow: const [
-                  BoxShadow(color: Colors.black, offset: Offset(3, 3)),
+                  BoxShadow(color: Colors.black, offset: Offset(2, 2)),
                 ],
               ),
               child: Icon(
                 Icons.menu,
                 color: Colors.black,
-                size: Platform.isAndroid ? 24 : 30,
+                size: Platform.isAndroid ? 20 : 26,
               ),
             ),
           ),
@@ -151,13 +151,17 @@ class GameAlignments {
 
         // score card overlays
         if (isDesktopOrWeb)
-          scoreCard(
-            playerBatting: playerBatting,
-            runs: runs,
-            wickets: wickets,
-            playerChoice: playerChoice,
-            opponentChoice: opponentChoice,
-            target: target,
+          Positioned(
+            top: 16,
+            left: 16,
+            child: scoreCard(
+              playerBatting: playerBatting,
+              runs: runs,
+              wickets: wickets,
+              playerChoice: playerChoice,
+              opponentChoice: opponentChoice,
+              target: target,
+            ),
           )
         else
           Align(
