@@ -14,6 +14,96 @@ class GameAlignments {
     }
   }
 
+  static void showPauseMenu(BuildContext context,
+      {VoidCallback? onRestart, VoidCallback? onHome}) {
+    bool muteMusic = false;
+    bool muteSfx = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(16),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00BFA5),
+                  border: Border.all(color: Colors.black, width: 4),
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black, offset: Offset(4, 4)),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 4, horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Text(
+                        "PAUSE MENU",
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                          fontFamily: "monospace",
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // 🎵 Music toggle
+                    GestureDetector(
+                      onTap: () => setState(() => muteMusic = !muteMusic),
+                      child: _retroButton(
+                        muteMusic ? "UNMUTE MUSIC" : "MUTE MUSIC",
+                        () => setState(() => muteMusic = !muteMusic),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // 🔊 SFX toggle
+                    GestureDetector(
+                      onTap: () => setState(() => muteSfx = !muteSfx),
+                      child: _retroButton(
+                        muteSfx ? "UNMUTE SFX" : "MUTE SFX",
+                        () => setState(() => muteSfx = !muteSfx),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // 🔁 Restart
+                    _retroButton("RESTART", () {
+                      Navigator.pop(context);
+                      if (onRestart != null) onRestart();
+                    }),
+                    const SizedBox(height: 12),
+
+                    // 🏠 Home
+                    _retroButton("HOME", () {
+                      Navigator.pop(context);
+                      if (onHome != null) {
+                        onHome();
+                      } else {
+                        Navigator.pop(context);
+                      }
+                    }),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   static Widget buildGameUI({
     required BuildContext context,
     required bool playerBatting,
@@ -31,7 +121,35 @@ class GameAlignments {
     return Stack(
       fit: StackFit.expand,
       children: [
+        // background always goes first
         background(playerBatting),
+
+        // now overlay pause button
+        Positioned(
+          top: 20,
+          right: 20,
+          child: GestureDetector(
+            onTap: () => showPauseMenu(context),
+            child: Container(
+              padding: EdgeInsets.all(Platform.isAndroid ? 8 : 10),
+              decoration: BoxDecoration(
+                color: Colors.yellow,
+                border: Border.all(color: Colors.black, width: 3),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black, offset: Offset(3, 3)),
+                ],
+              ),
+              child: Icon(
+                Icons.menu,
+                color: Colors.black,
+                size: Platform.isAndroid ? 24 : 30,
+              ),
+            ),
+          ),
+        ),
+
+        // score card overlays
         if (isDesktopOrWeb)
           scoreCard(
             playerBatting: playerBatting,
@@ -56,8 +174,11 @@ class GameAlignments {
               ),
             ),
           ),
+
         if (lastBallResult != null)
           Center(child: RunVfxPopup(result: lastBallResult)),
+
+        // bottom action buttons
         Align(
           alignment: Alignment.bottomCenter,
           child: Padding(
@@ -97,16 +218,17 @@ class GameAlignments {
     required int target,
   }) {
     final card = Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8), // Reduced padding
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius:
+            BorderRadius.circular(12), // Slightly smaller border radius
         border: Border.all(color: Colors.white24, width: 1.5),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.7),
-            blurRadius: 10,
-            offset: const Offset(3, 3),
+            blurRadius: 8, // Slightly smaller shadow
+            offset: const Offset(2, 2), // Smaller shadow offset
           ),
         ],
       ),
@@ -122,18 +244,19 @@ class GameAlignments {
 
     if (isDesktopOrWeb) {
       return Positioned(
-        top: 20,
-        right: 20,
+        top: 16, // Moved down slightly
+        right: 16, // Moved from edge slightly
         child: card,
       );
     } else {
       return Align(
-        alignment: isDesktopOrWeb ? Alignment.topLeft : Alignment.topCenter,
+        alignment: Alignment.topCenter,
         child: Container(
-          margin: const EdgeInsets.only(top: 16, left: 16, right: 16),
+          margin: const EdgeInsets.only(
+              top: 12, left: 12, right: 12), // Reduced margin
           constraints: const BoxConstraints(
-            maxWidth: 300,
-            maxHeight: 200,
+            maxWidth: 280, // Reduced max width
+            maxHeight: 180, // Reduced max height
           ),
           child: card,
         ),
@@ -155,7 +278,7 @@ class GameAlignments {
       Text(
         "Runs: $runs | Wickets: $wickets",
         style: const TextStyle(
-          fontSize: 18,
+          fontSize: 16, // Reduced from 18
           color: Colors.greenAccent,
           fontFamily: "monospace",
         ),
@@ -163,12 +286,12 @@ class GameAlignments {
     );
 
     if (target != -1) {
-      children.add(const SizedBox(height: 6));
+      children.add(const SizedBox(height: 4)); // Reduced spacing
       children.add(
         Text(
           "Target: $target",
           style: const TextStyle(
-            fontSize: 16,
+            fontSize: 14, // Reduced from 16
             color: Colors.yellow,
             fontFamily: "monospace",
           ),
@@ -176,7 +299,7 @@ class GameAlignments {
       );
     }
 
-    children.add(const SizedBox(height: 12));
+    children.add(const SizedBox(height: 8)); // Reduced spacing
 
     // ✅ Choices row
     children.add(
@@ -184,26 +307,30 @@ class GameAlignments {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _glassBox("You", playerChoice, Colors.cyanAccent),
-          const SizedBox(width: 20),
+          const SizedBox(width: 12), // Reduced spacing
           _glassBox("Opponent", opponentChoice, Colors.pinkAccent),
         ],
       ),
     );
 
-    return Column(children: children);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: children,
+    );
   }
 
   static Widget _glassBox(String title, int choice, Color borderColor) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(15),
+      borderRadius: BorderRadius.circular(12), // Slightly smaller border radius
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8), // Slightly less blur
         child: Container(
-          width: 120,
-          height: 90,
+          width: 100, // Reduced from 120
+          height: 75, // Reduced from 90
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(15),
+            borderRadius:
+                BorderRadius.circular(12), // Slightly smaller border radius
             border: Border.all(
               color: borderColor.withValues(alpha: 0.7),
               width: 1.5,
@@ -211,7 +338,7 @@ class GameAlignments {
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.5),
-                blurRadius: 8,
+                blurRadius: 6, // Reduced blur
                 offset: const Offset(2, 2),
               ),
             ],
@@ -222,17 +349,17 @@ class GameAlignments {
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14, // Reduced from 16
                   color: borderColor,
                   fontWeight: FontWeight.bold,
                   fontFamily: "monospace",
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4), // Reduced spacing
               Text(
                 "$choice",
                 style: TextStyle(
-                  fontSize: 26,
+                  fontSize: 22, // Reduced from 26
                   color: borderColor,
                   fontWeight: FontWeight.bold,
                 ),
@@ -262,7 +389,7 @@ class GameAlignments {
                 child: SpriteButton(
                   index: i + 1,
                   onTap: () => playTurn(i + 1),
-                  buttonSize: 80,
+                  buttonSize: 60,
                 ),
               ),
             ),

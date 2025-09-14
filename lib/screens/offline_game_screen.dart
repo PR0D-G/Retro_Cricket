@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/services.dart'; // for rootBundle
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../widget/align.dart';
@@ -23,7 +24,10 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
   final Random random = Random();
-  final AudioPlayer _audioPlayer = AudioPlayer(); // 🎵 sound player
+
+  // 🎵 Preloaded sound bytes
+  late Uint8List _outBytes;
+  late Uint8List _batBytes;
 
   late final bool initialPlayerBatting;
 
@@ -45,6 +49,36 @@ class _GameScreenState extends State<GameScreen> {
     super.initState();
     initialPlayerBatting = widget.battingFirst; // save role
     playerBatting = initialPlayerBatting;
+
+    _preloadSounds(); // ✅ preload sounds into memory
+  }
+
+  /// 🔹 Preload sound assets into memory for instant playback
+  Future<void> _preloadSounds() async {
+    _outBytes = await rootBundle
+        .load("assets/sounds/out.mp3")
+        .then((b) => b.buffer.asUint8List());
+
+    _batBytes = await rootBundle
+        .load("assets/sounds/bat_hit.mp3")
+        .then((b) => b.buffer.asUint8List());
+
+    // 🔥 Warm up both sounds silently
+    final warmUp1 = AudioPlayer();
+    await warmUp1.play(BytesSource(_outBytes), volume: 0);
+    await warmUp1.stop();
+    await warmUp1.dispose();
+
+    final warmUp2 = AudioPlayer();
+    await warmUp2.play(BytesSource(_batBytes), volume: 0);
+    await warmUp2.stop();
+    await warmUp2.dispose();
+  }
+
+  /// 🔹 Fire-and-forget sound player (allows overlapping spam)
+  Future<void> _playSound(Uint8List bytes) async {
+    final player = AudioPlayer();
+    await player.play(BytesSource(bytes));
   }
 
   /// 🔹 Reset match but keep same settings
@@ -55,7 +89,7 @@ class _GameScreenState extends State<GameScreen> {
       playerChoice = 0;
       opponentChoice = 0;
       target = -1;
-      playerBatting = initialPlayerBatting; // reset role correctly
+      playerBatting = initialPlayerBatting;
       isFirstInnings = true;
       ballsInInnings = 0;
       ballInProgress = false;
@@ -82,11 +116,11 @@ class _GameScreenState extends State<GameScreen> {
           if (playerChoice == opponentChoice) {
             result = "OUT";
             wickets++;
-            _audioPlayer.play(AssetSource("sounds/out.mp3")); // 🔊 OUT
+            _playSound(_outBytes); // 🔊 OUT
           } else {
             runs += playerChoice;
             result = "$playerChoice";
-            _audioPlayer.play(AssetSource("sounds/bat_hit.mp3")); // 🔊 Bat hit
+            _playSound(_batBytes); // 🔊 Bat hit
           }
         } else {
           if (playerChoice == opponentChoice) {
@@ -115,14 +149,14 @@ class _GameScreenState extends State<GameScreen> {
           if (playerChoice == opponentChoice) {
             result = "OUT";
             wickets++;
-            _audioPlayer.play(AssetSource("sounds/out.mp3")); // 🔊 OUT
+            _playSound(_outBytes); // 🔊 OUT
             if (wickets >= widget.wickets && runs < target) {
               triggerGameOver = true;
             }
           } else {
             runs += playerChoice;
             result = "$playerChoice";
-            _audioPlayer.play(AssetSource("sounds/bat_hit.mp3")); // 🔊 Bat hit
+            _playSound(_batBytes); // 🔊 Bat hit
             if (target != -1 && runs >= target) {
               triggerGameOver = true;
             }
@@ -169,15 +203,9 @@ class _GameScreenState extends State<GameScreen> {
         wickets,
         target,
         playerBatting: playerBatting,
-        onRetry: resetGame, // ✅ pass resetGame for retry button
+        onRetry: resetGame,
       );
     }
-  }
-
-  @override
-  void dispose() {
-    _audioPlayer.dispose(); // clean up sounds
-    super.dispose();
   }
 
   @override
